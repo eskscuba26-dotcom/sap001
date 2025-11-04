@@ -390,6 +390,15 @@ export default function Manufacturing({ user }) {
                     <td className="p-2 font-medium">{record.thickness_mm}</td>
                     <td className="p-2">{record.width_cm}</td>
                     <td className="p-2">{record.length_m}</td>
+                    <td className="p-2">
+                      {record.color_name ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          {record.color_name}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
+                    </td>
                     <td className="p-2 font-medium">{record.quantity}</td>
                     <td className="p-2 font-medium text-indigo-600">{record.square_meters.toFixed(2)}</td>
                     <td className="p-2 text-xs">{record.masura_type} ({record.masura_quantity})</td>
