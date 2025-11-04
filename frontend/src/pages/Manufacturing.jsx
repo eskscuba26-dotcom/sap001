@@ -75,6 +75,7 @@ export default function Manufacturing({ user }) {
       quantity: record.quantity.toString(),
       masura_type: record.masura_type,
       masura_quantity: record.masura_quantity.toString(),
+      color_material_id: record.color_material_id || '',
       gas_consumption_kg: record.gas_consumption_kg.toString()
     });
     setDialogOpen(true);
