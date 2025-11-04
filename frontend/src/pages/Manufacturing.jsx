@@ -280,7 +280,9 @@ export default function Manufacturing({ user }) {
                 <tr className="border-b">
                   <th className="text-left p-2 font-medium text-gray-600">Tarih</th>
                   <th className="text-left p-2 font-medium text-gray-600">Makine</th>
-                  <th className="text-left p-2 font-medium text-gray-600">Model</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Kalınlık (mm)</th>
+                  <th className="text-left p-2 font-medium text-gray-600">En (cm)</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Metre</th>
                   <th className="text-left p-2 font-medium text-gray-600">Adet</th>
                   <th className="text-left p-2 font-medium text-gray-600">m²</th>
                   <th className="text-left p-2 font-medium text-gray-600">Masura</th>
@@ -299,8 +301,10 @@ export default function Manufacturing({ user }) {
                         {record.machine}
                       </span>
                     </td>
-                    <td className="p-2 font-medium text-xs">{record.model}</td>
-                    <td className="p-2">{record.quantity}</td>
+                    <td className="p-2 font-medium">{record.thickness_mm}</td>
+                    <td className="p-2">{record.width_cm}</td>
+                    <td className="p-2">{record.length_m}</td>
+                    <td className="p-2 font-medium">{record.quantity}</td>
                     <td className="p-2 font-medium text-indigo-600">{record.square_meters.toFixed(2)}</td>
                     <td className="p-2 text-xs">{record.masura_type} ({record.masura_quantity})</td>
                     <td className="p-2">{record.gas_consumption_kg.toFixed(2)}</td>
