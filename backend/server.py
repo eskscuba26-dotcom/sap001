@@ -628,10 +628,18 @@ async def create_manufacturing_record(record_data: ManufacturingRecordCreate, cu
     # Generate model description
     model = f"{record_data.thickness_mm} mm x {int(record_data.width_cm)} cm x {int(record_data.length_m)} m"
     
+    # Get color name if color selected
+    color_name = None
+    if record_data.color_material_id:
+        color_material = await db.raw_materials.find_one({"id": record_data.color_material_id})
+        if color_material:
+            color_name = color_material['name']
+    
     record_obj = ManufacturingRecord(
         **record_data.model_dump(),
         square_meters=square_meters,
         model=model,
+        color_name=color_name,
         created_by=current_user['username']
     )
     
