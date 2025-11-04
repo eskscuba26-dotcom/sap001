@@ -314,12 +314,12 @@ export default function Manufacturing({ user }) {
 
                 <div className="space-y-2">
                   <Label htmlFor="color">Renk (Opsiyonel)</Label>
-                  <Select value={formData.color_material_id} onValueChange={(value) => setFormData({ ...formData, color_material_id: value })}>
+                  <Select value={formData.color_material_id || "none"} onValueChange={(value) => setFormData({ ...formData, color_material_id: value === "none" ? "" : value })}>
                     <SelectTrigger id="color" data-testid="manufacturing-color">
                       <SelectValue placeholder="Renk seçin (opsiyonel)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Renk Yok</SelectItem>
+                      <SelectItem value="none">Renk Yok</SelectItem>
                       {colors.map((color) => (
                         <SelectItem key={color.id} value={color.id}>
                           {color.name}
