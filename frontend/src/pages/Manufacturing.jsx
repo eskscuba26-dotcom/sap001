@@ -16,6 +16,7 @@ export default function Manufacturing({ user }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
   const [formData, setFormData] = useState({
     production_date: '',
     machine: 'Makine 1',
