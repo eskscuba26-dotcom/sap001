@@ -764,6 +764,48 @@ async def delete_manufacturing_record(record_id: str, current_user = Depends(get
     
     return {"message": "Record deleted successfully"}
 
+# Stock Management Routes
+class StockItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    thickness_mm: float
+    width_cm: float
+    length_m: float
+    color_name: Optional[str] = None
+    total_quantity: int
+    total_square_meters: float
+
+@api_router.get("/stock", response_model=List[StockItem])
+async def get_stock(current_user = Depends(get_current_user)):
+    # Get all manufacturing records
+    manufacturing = await db.manufacturing_records.find({}, {"_id": 0}).to_list(10000)
+    
+    # Get all shipments
+    shipments = await db.shipments.find({}, {"_id": 0}).to_list(10000)
+    
+    # Group by model (thickness, width, length, color)
+    stock_dict = {}
+    
+    for record in manufacturing:
+        key = f"{record['thickness_mm']}|{record['width_cm']}|{record['length_m']}|{record.get('color_name', '')}"
+        
+        if key not in stock_dict:
+            stock_dict[key] = {
+                'thickness_mm': record['thickness_mm'],
+                'width_cm': record['width_cm'],
+                'length_m': record['length_m'],
+                'color_name': record.get('color_name'),
+                'total_quantity': 0,
+                'total_square_meters': 0
+            }
+        
+        stock_dict[key]['total_quantity'] += record['quantity']
+        stock_dict[key]['total_square_meters'] += record['square_meters']
+    
+    # Subtract shipments (will implement this when shipments are updated)
+    # For now, return production stock
+    
+    return list(stock_dict.values())
+
 # User Management Routes
 @api_router.get("/users", response_model=List[User])
 async def get_users(current_user = Depends(get_current_user)):
