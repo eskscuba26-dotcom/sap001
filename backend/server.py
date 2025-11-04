@@ -579,6 +579,7 @@ async def update_shipment(shipment_id: str, shipment_data: ShipmentCreate, curre
     # Güncellenmiş sevkiyat objesi oluştur
     updated_shipment = Shipment(
         id=shipment_id,
+        shipment_number=existing_shipment['shipment_number'],
         **shipment_data.model_dump(),
         square_meters=(shipment_data.width_cm / 100) * shipment_data.length_m * shipment_data.quantity,
         created_at=datetime.fromisoformat(existing_shipment['created_at']) if isinstance(existing_shipment['created_at'], str) else existing_shipment['created_at'],
