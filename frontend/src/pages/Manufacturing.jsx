@@ -147,7 +147,23 @@ export default function Manufacturing({ user }) {
           <p className="text-gray-600">Detaylı üretim takibi ve raporlama</p>
         </div>
         {canEdit && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setEditingRecord(null);
+              setFormData({
+                production_date: '',
+                machine: 'Makine 1',
+                thickness_mm: '',
+                width_cm: '',
+                length_m: '',
+                quantity: '',
+                masura_type: 'Masura 100',
+                masura_quantity: '',
+                gas_consumption_kg: ''
+              });
+            }
+          }}>
             <DialogTrigger asChild>
               <Button data-testid="add-manufacturing-btn">
                 <Plus className="h-4 w-4 mr-2" />
