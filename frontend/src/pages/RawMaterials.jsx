@@ -100,9 +100,10 @@ export default function RawMaterials({ user }) {
                 Yeni Hammadde
               </Button>
             </DialogTrigger>
-            <DialogContent data-testid="add-material-dialog">
+            <DialogContent data-testid="add-material-dialog" aria-describedby="material-dialog-description">
               <DialogHeader>
                 <DialogTitle>Yeni Hammadde Ekle</DialogTitle>
+                <p id="material-dialog-description" className="sr-only">Yeni hammadde tanımlamak için formu doldurun</p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
