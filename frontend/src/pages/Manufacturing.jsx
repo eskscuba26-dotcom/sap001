@@ -83,6 +83,10 @@ export default function Manufacturing({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Önce dialog'u kapat
+    setDialogOpen(false);
+    
     try {
       const payload = {
         production_date: new Date(formData.production_date).toISOString(),
@@ -98,9 +102,8 @@ export default function Manufacturing({ user }) {
       };
 
       if (editingRecord) {
-        // Update existing record
-        await axios.delete(`${API}/manufacturing/${editingRecord.id}`);
-        await axios.post(`${API}/manufacturing`, payload);
+        // Update existing record using PUT
+        await axios.put(`${API}/manufacturing/${editingRecord.id}`, payload);
         toast.success('Üretim kaydı güncellendi');
       } else {
         // Create new record
@@ -108,7 +111,6 @@ export default function Manufacturing({ user }) {
         toast.success('Üretim kaydı eklendi');
       }
       
-      setDialogOpen(false);
       setEditingRecord(null);
       setFormData({
         production_date: '',
@@ -122,7 +124,9 @@ export default function Manufacturing({ user }) {
         color_material_id: '',
         gas_consumption_kg: ''
       });
-      fetchRecords();
+      
+      // Kayıtları yeniden yükle
+      await fetchRecords();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Hata oluştu');
     }
