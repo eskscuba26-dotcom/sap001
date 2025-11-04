@@ -93,7 +93,8 @@ export default function Manufacturing({ user }) {
         masura_quantity: parseInt(formData.masura_quantity),
         gas_consumption_kg: parseFloat(formData.gas_consumption_kg),
         machine: formData.machine,
-        masura_type: formData.masura_type
+        masura_type: formData.masura_type,
+        color_material_id: formData.color_material_id && formData.color_material_id !== 'none' ? formData.color_material_id : null
       };
 
       if (editingRecord) {
