@@ -518,26 +518,33 @@ async def create_shipment(shipment_data: ShipmentCreate, current_user = Depends(
     if current_user['role'] == 'viewer':
         raise HTTPException(status_code=403, detail="Permission denied")
     
-    product = await db.products.find_one({"id": shipment_data.product_id})
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+    # Calculate square meters
+    square_meters = (shipment_data.width_cm / 100) * shipment_data.length_m * shipment_data.quantity
     
-    if product['current_stock'] < shipment_data.quantity:
-        raise HTTPException(status_code=400, detail="Insufficient product stock")
+    # Get color name if color selected
+    color_name = None
+    if shipment_data.color_material_id:
+        color_material = await db.raw_materials.find_one({"id": shipment_data.color_material_id})
+        if color_material:
+            color_name = color_material['name']
     
     # Generate shipment number
     count = await db.shipments.count_documents({}) + 1
-    shipment_number = f"SHP-{count:05d}"
+    shipment_number = f"SEV-{count:05d}"
     
     shipment_obj = Shipment(
         shipment_number=shipment_number,
-        product_id=shipment_data.product_id,
-        product_name=product['name'],
-        quantity=shipment_data.quantity,
-        customer_name=shipment_data.customer_name,
-        destination=shipment_data.destination,
-        status=ShipmentStatus.PENDING,
         shipment_date=shipment_data.shipment_date,
+        customer_company=shipment_data.customer_company,
+        thickness_mm=shipment_data.thickness_mm,
+        width_cm=shipment_data.width_cm,
+        length_m=shipment_data.length_m,
+        color_name=color_name,
+        quantity=shipment_data.quantity,
+        square_meters=square_meters,
+        invoice_number=shipment_data.invoice_number,
+        vehicle_plate=shipment_data.vehicle_plate,
+        driver_name=shipment_data.driver_name,
         created_by=current_user['username']
     )
     
@@ -545,12 +552,6 @@ async def create_shipment(shipment_data: ShipmentCreate, current_user = Depends(
     doc['created_at'] = doc['created_at'].isoformat()
     doc['shipment_date'] = doc['shipment_date'].isoformat()
     await db.shipments.insert_one(doc)
-    
-    # Update product stock
-    await db.products.update_one(
-        {"id": shipment_data.product_id},
-        {"$inc": {"current_stock": -shipment_data.quantity}}
-    )
     
     return shipment_obj
 
