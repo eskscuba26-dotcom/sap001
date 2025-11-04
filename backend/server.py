@@ -613,6 +613,95 @@ async def get_dashboard_stats(current_user = Depends(get_current_user)):
         low_stock_materials=low_stock_materials
     )
 
+# Manufacturing Routes
+@api_router.post("/manufacturing", response_model=ManufacturingRecord)
+async def create_manufacturing_record(record_data: ManufacturingRecordCreate, current_user = Depends(get_current_user)):
+    if current_user['role'] == 'viewer':
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Calculate square meters
+    square_meters = (record_data.width_cm / 100) * record_data.length_m * record_data.quantity
+    
+    # Generate model description
+    model = f"{record_data.thickness_mm} mm x {int(record_data.width_cm)} cm x {int(record_data.length_m)} m"
+    
+    record_obj = ManufacturingRecord(
+        **record_data.model_dump(),
+        square_meters=square_meters,
+        model=model,
+        created_by=current_user['username']
+    )
+    
+    doc = record_obj.model_dump()
+    doc['production_date'] = doc['production_date'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.manufacturing_records.insert_one(doc)
+    
+    # Update masura stock if not "Masura Yok"
+    if record_data.masura_type != MasuraType.NO_MASURA:
+        masura_material = await db.raw_materials.find_one({"name": record_data.masura_type})
+        if masura_material and masura_material['current_stock'] >= record_data.masura_quantity:
+            await db.raw_materials.update_one(
+                {"id": masura_material['id']},
+                {"$inc": {"current_stock": -record_data.masura_quantity}}
+            )
+            
+            # Create consumption record for masura
+            consumption_doc = {
+                "id": str(uuid.uuid4()),
+                "production_order_id": record_obj.id,
+                "material_id": masura_material['id'],
+                "material_name": masura_material['name'],
+                "quantity": record_data.masura_quantity,
+                "created_by": current_user['username'],
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.consumptions.insert_one(consumption_doc)
+    
+    # Update gas consumption (Gaz material)
+    gaz_material = await db.raw_materials.find_one({"code": "GAZ001"})
+    if gaz_material and gaz_material['current_stock'] >= record_data.gas_consumption_kg:
+        await db.raw_materials.update_one(
+            {"id": gaz_material['id']},
+            {"$inc": {"current_stock": -record_data.gas_consumption_kg}}
+        )
+        
+        # Create consumption record for gas
+        gas_consumption_doc = {
+            "id": str(uuid.uuid4()),
+            "production_order_id": record_obj.id,
+            "material_id": gaz_material['id'],
+            "material_name": gaz_material['name'],
+            "quantity": record_data.gas_consumption_kg,
+            "created_by": current_user['username'],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.consumptions.insert_one(gas_consumption_doc)
+    
+    return record_obj
+
+@api_router.get("/manufacturing", response_model=List[ManufacturingRecord])
+async def get_manufacturing_records(current_user = Depends(get_current_user)):
+    records = await db.manufacturing_records.find({}, {"_id": 0}).sort("production_date", -1).to_list(1000)
+    for record in records:
+        if isinstance(record['production_date'], str):
+            record['production_date'] = datetime.fromisoformat(record['production_date'])
+        if isinstance(record['created_at'], str):
+            record['created_at'] = datetime.fromisoformat(record['created_at'])
+    return records
+
+@api_router.delete("/manufacturing/{record_id}")
+async def delete_manufacturing_record(record_id: str, current_user = Depends(get_current_user)):
+    if current_user['role'] not in ['admin', 'user']:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    result = await db.manufacturing_records.delete_one({"id": record_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    return {"message": "Record deleted successfully"}
+
 # User Management Routes
 @api_router.get("/users", response_model=List[User])
 async def get_users(current_user = Depends(get_current_user)):
