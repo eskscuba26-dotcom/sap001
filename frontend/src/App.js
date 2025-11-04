@@ -1,52 +1,98 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import LoginPage from "@/pages/LoginPage";
+import DashboardLayout from "@/components/DashboardLayout";
+import Dashboard from "@/pages/Dashboard";
+import RawMaterials from "@/pages/RawMaterials";
+import Products from "@/pages/Products";
+import Production from "@/pages/Production";
+import Manufacturing from "@/pages/Manufacturing";
+import Stock from "@/pages/Stock";
+import Shipments from "@/pages/Shipments";
+import Consumption from "@/pages/Consumption";
+import CostAnalysis from "@/pages/CostAnalysis";
+import Users from "@/pages/Users";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+// Axios interceptor for auth
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  };
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+export { API };
+
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/login" element={<LoginPage setUser={setUser} />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout user={user}>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/raw-materials" element={<RawMaterials user={user} />} />
+                    <Route path="/products" element={<Products user={user} />} />
+                    <Route path="/production" element={<Production user={user} />} />
+                    <Route path="/manufacturing" element={<Manufacturing user={user} />} />
+                    <Route path="/stock" element={<Stock />} />
+                    <Route path="/shipments" element={<Shipments user={user} />} />
+                    <Route path="/consumption" element={<Consumption user={user} />} />
+                    <Route path="/cost-analysis" element={<CostAnalysis />} />
+                    <Route path="/users" element={<Users user={user} />} />
+                  </Routes>
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
+      <Toaster position="top-right" richColors />
     </div>
   );
 }
