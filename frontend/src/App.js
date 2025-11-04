@@ -80,6 +80,7 @@ function App() {
                     <Route path="/products" element={<Products user={user} />} />
                     <Route path="/production" element={<Production user={user} />} />
                     <Route path="/manufacturing" element={<Manufacturing user={user} />} />
+                    <Route path="/stock" element={<Stock />} />
                     <Route path="/shipments" element={<Shipments user={user} />} />
                     <Route path="/consumption" element={<Consumption user={user} />} />
                     <Route path="/cost-analysis" element={<CostAnalysis />} />
