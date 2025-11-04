@@ -368,6 +368,7 @@ export default function Manufacturing({ user }) {
                   <th className="text-left p-2 font-medium text-gray-600">Kalınlık (mm)</th>
                   <th className="text-left p-2 font-medium text-gray-600">En (cm)</th>
                   <th className="text-left p-2 font-medium text-gray-600">Metre</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Renk</th>
                   <th className="text-left p-2 font-medium text-gray-600">Adet</th>
                   <th className="text-left p-2 font-medium text-gray-600">m²</th>
                   <th className="text-left p-2 font-medium text-gray-600">Masura</th>
