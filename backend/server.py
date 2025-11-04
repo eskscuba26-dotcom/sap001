@@ -202,9 +202,9 @@ class DailyConsumption(BaseModel):
     date: datetime
     machine: str  # "Makine 1" veya "Makine 2"
     petkim_quantity: float
-    estol_quantity: float  # Petkim * 0.03
-    talk_quantity: float  # Petkim * 0.015
-    fire_quantity: float
+    estol_quantity: float  # (Petkim + Fire) * 0.03
+    talk_quantity: float  # (Petkim + Fire) * 0.015
+    fire_quantity: float  # Sıcak Malzeme (içinde Petkim var)
     total_petkim: float  # Petkim + Fire
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -213,10 +213,10 @@ class DailyConsumptionCreate(BaseModel):
     date: datetime
     machine: str
     petkim_quantity: float
-    estol_quantity: float
-    talk_quantity: float
+    estol_quantity: float  # Frontend hesaplayıp gönderiyor
+    talk_quantity: float  # Frontend hesaplayıp gönderiyor
     fire_quantity: float
-    total_petkim: float
+    total_petkim: float  # Frontend hesaplayıp gönderiyor
 
 
 class Shipment(BaseModel):
