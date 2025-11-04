@@ -782,43 +782,31 @@ async def get_stock(current_user = Depends(get_current_user)):
     # Get all shipments
     shipments = await db.shipments.find({}, {"_id": 0}).to_list(10000)
     
-    # Group by model (ONLY thickness, width, length - NOT color)
+    # Group by model (thickness, width, length, AND color if present)
     stock_dict = {}
     
     for record in manufacturing:
-        # Key WITHOUT color - only dimensions matter
-        key = f"{record['thickness_mm']}|{record['width_cm']}|{record['length_m']}"
+        # Key includes color if present, empty string if not
+        color_key = record.get('color_name', '') or ''
+        key = f"{record['thickness_mm']}|{record['width_cm']}|{record['length_m']}|{color_key}"
         
         if key not in stock_dict:
             stock_dict[key] = {
                 'thickness_mm': record['thickness_mm'],
                 'width_cm': record['width_cm'],
                 'length_m': record['length_m'],
-                'color_name': None,  # Will collect all colors
+                'color_name': record.get('color_name'),
                 'total_quantity': 0,
-                'total_square_meters': 0,
-                'colors': set()  # Track all colors used
+                'total_square_meters': 0
             }
         
         stock_dict[key]['total_quantity'] += record['quantity']
         stock_dict[key]['total_square_meters'] += record['square_meters']
-        
-        # Collect color information
-        if record.get('color_name'):
-            stock_dict[key]['colors'].add(record['color_name'])
-    
-    # Convert colors set to string for display
-    result = []
-    for item in stock_dict.values():
-        colors = item.pop('colors')
-        if colors:
-            item['color_name'] = ', '.join(sorted(colors))
-        result.append(item)
     
     # Subtract shipments (will implement this when shipments are updated)
     # For now, return production stock
     
-    return result
+    return list(stock_dict.values())
 
 # User Management Routes
 @api_router.get("/users", response_model=List[User])
