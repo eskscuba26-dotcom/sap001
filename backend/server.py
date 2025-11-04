@@ -795,6 +795,7 @@ async def get_stock(current_user = Depends(get_current_user)):
     # Group by model (thickness, width, length, AND color if present)
     stock_dict = {}
     
+    # Add manufacturing (production)
     for record in manufacturing:
         # Key includes color if present, empty string if not
         color_key = record.get('color_name', '') or ''
@@ -813,10 +814,19 @@ async def get_stock(current_user = Depends(get_current_user)):
         stock_dict[key]['total_quantity'] += record['quantity']
         stock_dict[key]['total_square_meters'] += record['square_meters']
     
-    # Subtract shipments (will implement this when shipments are updated)
-    # For now, return production stock
+    # Subtract shipments
+    for shipment in shipments:
+        color_key = shipment.get('color_name', '') or ''
+        key = f"{shipment['thickness_mm']}|{shipment['width_cm']}|{shipment['length_m']}|{color_key}"
+        
+        if key in stock_dict:
+            stock_dict[key]['total_quantity'] -= shipment['quantity']
+            stock_dict[key]['total_square_meters'] -= shipment['square_meters']
     
-    return list(stock_dict.values())
+    # Filter out items with zero or negative stock
+    result = [item for item in stock_dict.values() if item['total_quantity'] > 0]
+    
+    return result
 
 # User Management Routes
 @api_router.get("/users", response_model=List[User])
