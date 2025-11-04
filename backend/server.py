@@ -144,6 +144,8 @@ class ManufacturingRecord(BaseModel):
     square_meters: float  # Metrekare (otomatik hesaplanacak)
     masura_type: MasuraType
     masura_quantity: int  # Masura Adedi
+    color_material_id: Optional[str] = None  # Renk hammadde ID
+    color_name: Optional[str] = None  # Renk adı
     model: str  # Model açıklaması
     gas_consumption_kg: float  # Gaz Payı (kg)
     created_by: str
@@ -158,6 +160,7 @@ class ManufacturingRecordCreate(BaseModel):
     quantity: int
     masura_type: MasuraType
     masura_quantity: int
+    color_material_id: Optional[str] = None
     gas_consumption_kg: float
 
 class ProductionOrder(BaseModel):
