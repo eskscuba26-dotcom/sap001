@@ -28,13 +28,11 @@ export default function Consumption({ user }) {
 
   useEffect(() => {
     fetchConsumptions();
-    fetchMaterials();
-    fetchProductionOrders();
   }, []);
 
   const fetchConsumptions = async () => {
     try {
-      const response = await axios.get(`${API}/consumptions`);
+      const response = await axios.get(`${API}/daily-consumptions`);
       setConsumptions(response.data);
     } catch (error) {
       toast.error('Tüketimler yüklenemedi');
@@ -43,39 +41,77 @@ export default function Consumption({ user }) {
     }
   };
 
-  const fetchMaterials = async () => {
-    try {
-      const response = await axios.get(`${API}/raw-materials`);
-      setMaterials(response.data);
-    } catch (error) {
-      toast.error('Hammaddeler yüklenemedi');
-    }
+  // Otomatik hesaplamalar
+  const calculateEstol = () => {
+    const petkim = parseFloat(formData.petkim_quantity) || 0;
+    return (petkim * 0.03).toFixed(2);
   };
 
-  const fetchProductionOrders = async () => {
-    try {
-      const response = await axios.get(`${API}/production-orders`);
-      const activeOrders = response.data.filter(
-        (order) => order.status === 'planned' || order.status === 'in_progress'
-      );
-      setProductionOrders(activeOrders);
-    } catch (error) {
-      toast.error('Üretim emirleri yüklenemedi');
-    }
+  const calculateTalk = () => {
+    const petkim = parseFloat(formData.petkim_quantity) || 0;
+    return (petkim * 0.015).toFixed(2);
+  };
+
+  const calculateTotalPetkim = () => {
+    const petkim = parseFloat(formData.petkim_quantity) || 0;
+    const fire = parseFloat(formData.fire_quantity) || 0;
+    return (petkim + fire).toFixed(2);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/consumptions`, {
-        ...formData,
-        quantity: parseFloat(formData.quantity)
-      });
-      toast.success('Tüketim kaydedildi');
+      const payload = {
+        date: new Date(formData.date).toISOString(),
+        machine: formData.machine,
+        petkim_quantity: parseFloat(formData.petkim_quantity),
+        estol_quantity: parseFloat(calculateEstol()),
+        talk_quantity: parseFloat(calculateTalk()),
+        fire_quantity: parseFloat(formData.fire_quantity),
+        total_petkim: parseFloat(calculateTotalPetkim())
+      };
+
+      if (editingConsumption) {
+        await axios.put(`${API}/daily-consumptions/${editingConsumption.id}`, payload);
+        toast.success('Tüketim kaydı güncellendi');
+      } else {
+        await axios.post(`${API}/daily-consumptions`, payload);
+        toast.success('Tüketim kaydı oluşturuldu');
+      }
+      
       setDialogOpen(false);
-      setFormData({ production_order_id: '', material_id: '', quantity: '' });
+      setEditingConsumption(null);
+      setFormData({
+        date: '',
+        machine: 'Makine 1',
+        petkim_quantity: '',
+        fire_quantity: ''
+      });
       fetchConsumptions();
-      fetchMaterials();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Hata oluştu');
+    }
+  };
+
+  const handleEdit = (consumption) => {
+    setEditingConsumption(consumption);
+    setFormData({
+      date: new Date(consumption.date).toISOString().slice(0, 16),
+      machine: consumption.machine,
+      petkim_quantity: consumption.petkim_quantity.toString(),
+      fire_quantity: consumption.fire_quantity.toString()
+    });
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (consumptionId) => {
+    if (!window.confirm('Bu tüketim kaydını silmek istediğinize emin misiniz?')) {
+      return;
+    }
+    try {
+      await axios.delete(`${API}/daily-consumptions/${consumptionId}`);
+      toast.success('Tüketim kaydı silindi');
+      fetchConsumptions();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Hata oluştu');
     }
@@ -89,96 +125,190 @@ export default function Consumption({ user }) {
     <div className="space-y-6 fade-in" data-testid="consumption-page">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'Space Grotesk' }}>Tüketim Takibi</h1>
-          <p className="text-gray-600">Hammadde tüketim kayıtları</p>
+          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'Space Grotesk' }}>Günlük Tüketim Takibi</h1>
+          <p className="text-gray-600">Makine bazlı hammadde tüketim kayıtları</p>
         </div>
         {canEdit && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setEditingConsumption(null);
+              setFormData({
+                date: '',
+                machine: 'Makine 1',
+                petkim_quantity: '',
+                fire_quantity: ''
+              });
+            }
+          }}>
             <DialogTrigger asChild>
               <Button data-testid="add-consumption-btn">
                 <Plus className="h-4 w-4 mr-2" />
-                Tüketim Kaydı
+                Tüketim Kaydı Ekle
               </Button>
             </DialogTrigger>
-            <DialogContent data-testid="add-consumption-dialog" aria-describedby="consumption-dialog-description">
+            <DialogContent className="max-w-2xl" data-testid="add-consumption-dialog">
               <DialogHeader>
-                <DialogTitle>Yeni Tüketim Kaydı</DialogTitle>
-                <p id="consumption-dialog-description" className="sr-only">Hammadde tüketimi kaydetmek için formu doldurun</p>
+                <DialogTitle>{editingConsumption ? 'Tüketim Kaydı Düzenle' : 'Yeni Tüketim Kaydı'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="production_order">Üretim Emri</Label>
-                  <Select value={formData.production_order_id} onValueChange={(value) => setFormData({ ...formData, production_order_id: value })}>
-                    <SelectTrigger id="production_order" data-testid="consumption-order">
-                      <SelectValue placeholder="Üretim emri seçin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {productionOrders.map((order) => (
-                        <SelectItem key={order.id} value={order.id}>
-                          {order.order_number} - {order.product_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Tarih</Label>
+                    <Input
+                      id="date"
+                      data-testid="consumption-date"
+                      type="datetime-local"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="machine">Makine</Label>
+                    <Select value={formData.machine} onValueChange={(value) => setFormData({ ...formData, machine: value })}>
+                      <SelectTrigger id="machine" data-testid="consumption-machine">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Makine 1">Makine 1</SelectItem>
+                        <SelectItem value="Makine 2">Makine 2</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="material">Hammadde</Label>
-                  <Select value={formData.material_id} onValueChange={(value) => setFormData({ ...formData, material_id: value })}>
-                    <SelectTrigger id="material" data-testid="consumption-material">
-                      <SelectValue placeholder="Hammadde seçin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {materials.map((material) => (
-                        <SelectItem key={material.id} value={material.id}>
-                          {material.name} (Stok: {material.current_stock} {material.unit})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Tüketilen Miktar</Label>
+                  <Label htmlFor="petkim">Petkim Miktarı (kg)</Label>
                   <Input
-                    id="quantity"
-                    data-testid="consumption-quantity"
+                    id="petkim"
+                    data-testid="consumption-petkim"
                     type="number"
                     step="0.01"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    value={formData.petkim_quantity}
+                    onChange={(e) => setFormData({ ...formData, petkim_quantity: e.target.value })}
                     required
+                    placeholder="Petkim miktarını girin"
                   />
                 </div>
-                <Button type="submit" className="w-full" data-testid="submit-consumption-btn">Kaydet</Button>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="estol">Estol (kg) - Otomatik (%3)</Label>
+                    <Input
+                      id="estol"
+                      type="text"
+                      value={calculateEstol()}
+                      readOnly
+                      className="bg-gray-50 font-semibold text-indigo-600"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="talk">Talk (kg) - Otomatik (%1.5)</Label>
+                    <Input
+                      id="talk"
+                      type="text"
+                      value={calculateTalk()}
+                      readOnly
+                      className="bg-gray-50 font-semibold text-indigo-600"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fire">Fire / Sıcak Malzeme (kg)</Label>
+                  <Input
+                    id="fire"
+                    data-testid="consumption-fire"
+                    type="number"
+                    step="0.01"
+                    value={formData.fire_quantity}
+                    onChange={(e) => setFormData({ ...formData, fire_quantity: e.target.value })}
+                    required
+                    placeholder="Fire miktarını girin"
+                  />
+                </div>
+
+                <div className="space-y-2 bg-indigo-50 p-4 rounded-lg border-2 border-indigo-200">
+                  <Label htmlFor="total_petkim" className="text-lg font-bold">Toplam Petkim (kg)</Label>
+                  <Input
+                    id="total_petkim"
+                    type="text"
+                    value={calculateTotalPetkim()}
+                    readOnly
+                    className="bg-white font-bold text-xl text-indigo-700"
+                  />
+                  <p className="text-sm text-gray-600">Petkim + Fire</p>
+                </div>
+
+                <Button type="submit" className="w-full" data-testid="submit-consumption-btn">
+                  {editingConsumption ? 'Güncelle' : 'Kaydet'}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
         )}
       </div>
 
-      <div className="overflow-x-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Tüketim Kayıtları</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <table className="w-full">
+      <Card>
+        <CardHeader>
+          <CardTitle>Tüketim Kayıtları</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-3 font-medium text-gray-600">Tarih</th>
-                  <th className="text-left p-3 font-medium text-gray-600">Üretim Emri</th>
-                  <th className="text-left p-3 font-medium text-gray-600">Hammadde</th>
-                  <th className="text-left p-3 font-medium text-gray-600">Miktar</th>
-                  <th className="text-left p-3 font-medium text-gray-600">Kaydeden</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Tarih</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Makine</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Petkim (kg)</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Estol (kg)</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Talk (kg)</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Fire (kg)</th>
+                  <th className="text-left p-2 font-medium text-gray-600">Toplam Petkim</th>
+                  {canEdit && <th className="text-left p-2 font-medium text-gray-600">İşlem</th>}
                 </tr>
               </thead>
               <tbody>
                 {consumptions.map((consumption, index) => (
                   <tr key={consumption.id} className="border-b hover:bg-gray-50" data-testid={`consumption-row-${index}`}>
-                    <td className="p-3">{format(new Date(consumption.created_at), 'dd MMM yyyy HH:mm', { locale: tr })}</td>
-                    <td className="p-3 font-medium">{consumption.production_order_id}</td>
-                    <td className="p-3">{consumption.material_name}</td>
-                    <td className="p-3 font-medium">{consumption.quantity}</td>
-                    <td className="p-3">{consumption.created_by}</td>
+                    <td className="p-2">{format(new Date(consumption.date), 'dd.MM.yyyy HH:mm', { locale: tr })}</td>
+                    <td className="p-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                        consumption.machine === 'Makine 1' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                      }`}>
+                        {consumption.machine}
+                      </span>
+                    </td>
+                    <td className="p-2 font-bold text-blue-600">{consumption.petkim_quantity.toFixed(2)}</td>
+                    <td className="p-2">{consumption.estol_quantity.toFixed(2)}</td>
+                    <td className="p-2">{consumption.talk_quantity.toFixed(2)}</td>
+                    <td className="p-2 text-red-600 font-semibold">{consumption.fire_quantity.toFixed(2)}</td>
+                    <td className="p-2 font-bold text-indigo-600">{consumption.total_petkim.toFixed(2)}</td>
+                    {canEdit && (
+                      <td className="p-2">
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(consumption)}
+                            data-testid={`edit-consumption-${index}`}
+                            title="Düzenle"
+                          >
+                            <Edit className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(consumption.id)}
+                            data-testid={`delete-consumption-${index}`}
+                            title="Sil"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -188,9 +318,9 @@ export default function Consumption({ user }) {
                 Henüz tüketim kaydı bulunmuyor.
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
