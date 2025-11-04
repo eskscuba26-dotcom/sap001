@@ -312,6 +312,23 @@ export default function Manufacturing({ user }) {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="color">Renk (Opsiyonel)</Label>
+                  <Select value={formData.color_material_id} onValueChange={(value) => setFormData({ ...formData, color_material_id: value })}>
+                    <SelectTrigger id="color" data-testid="manufacturing-color">
+                      <SelectValue placeholder="Renk seçin (opsiyonel)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Renk Yok</SelectItem>
+                      {colors.map((color) => (
+                        <SelectItem key={color.id} value={color.id}>
+                          {color.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="gas_consumption">Gaz Payı (kg)</Label>
                   <Input
                     id="gas_consumption"
