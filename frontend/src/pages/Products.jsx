@@ -69,9 +69,10 @@ export default function Products({ user }) {
                 Yeni Ürün
               </Button>
             </DialogTrigger>
-            <DialogContent data-testid="add-product-dialog">
+            <DialogContent data-testid="add-product-dialog" aria-describedby="product-dialog-description">
               <DialogHeader>
                 <DialogTitle>Yeni Ürün Ekle</DialogTitle>
+                <p id="product-dialog-description" className="sr-only">Yeni ürün tanımlamak için formu doldurun</p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
