@@ -216,6 +216,20 @@ class DailyConsumptionCreate(BaseModel):
     estol_quantity: float  # Frontend hesaplayıp gönderiyor
     talk_quantity: float  # Frontend hesaplayıp gönderiyor
     fire_quantity: float
+
+
+class DailyGasConsumption(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    date: datetime
+    total_gas_kg: float
+    created_by: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DailyGasConsumptionCreate(BaseModel):
+    date: datetime
+    total_gas_kg: float
+
     total_petkim: float  # Frontend hesaplayıp gönderiyor
 
 
