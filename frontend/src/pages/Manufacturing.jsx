@@ -172,8 +172,8 @@ export default function Manufacturing({ user }) {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="add-manufacturing-dialog" aria-describedby="manufacturing-dialog-description">
               <DialogHeader>
-                <DialogTitle>Yeni Üretim Kaydı</DialogTitle>
-                <p id="manufacturing-dialog-description" className="sr-only">Üretim bilgilerini girerek yeni kayıt oluşturun</p>
+                <DialogTitle>{editingRecord ? 'Üretim Kaydını Düzenle' : 'Yeni Üretim Kaydı'}</DialogTitle>
+                <p id="manufacturing-dialog-description" className="sr-only">Üretim bilgilerini girerek yeni kayıt oluşturun veya mevcut kaydı düzenleyin</p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
