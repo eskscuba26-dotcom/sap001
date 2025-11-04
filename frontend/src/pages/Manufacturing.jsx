@@ -363,14 +363,26 @@ export default function Manufacturing({ user }) {
                     <td className="p-2 text-xs">{record.created_by}</td>
                     {canEdit && (
                       <td className="p-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(record.id)}
-                          data-testid={`delete-manufacturing-${index}`}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(record)}
+                            data-testid={`edit-manufacturing-${index}`}
+                            title="Düzenle"
+                          >
+                            <Edit2 className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(record.id)}
+                            data-testid={`delete-manufacturing-${index}`}
+                            title="Sil"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
                       </td>
                     )}
                   </tr>
