@@ -84,6 +84,7 @@ function App() {
                     <Route path="/stock" element={<Stock />} />
                     <Route path="/shipments" element={<Shipments user={user} />} />
                     <Route path="/consumption" element={<Consumption user={user} />} />
+                    <Route path="/gas-consumption" element={<GasConsumption user={user} />} />
                     <Route path="/cost-analysis" element={<CostAnalysis />} />
                     <Route path="/users" element={<Users user={user} />} />
                   </Routes>
