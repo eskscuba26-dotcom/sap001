@@ -557,7 +557,7 @@ async def create_shipment(shipment_data: ShipmentCreate, current_user = Depends(
 
 @api_router.get("/shipments", response_model=List[Shipment])
 async def get_shipments(current_user = Depends(get_current_user)):
-    shipments = await db.shipments.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    shipments = await db.shipments.find({}, {"_id": 0}).sort("shipment_date", -1).to_list(1000)
     for ship in shipments:
         if isinstance(ship['created_at'], str):
             ship['created_at'] = datetime.fromisoformat(ship['created_at'])
@@ -565,16 +565,16 @@ async def get_shipments(current_user = Depends(get_current_user)):
             ship['shipment_date'] = datetime.fromisoformat(ship['shipment_date'])
     return shipments
 
-@api_router.patch("/shipments/{shipment_id}/status")
-async def update_shipment_status(shipment_id: str, status: ShipmentStatus, current_user = Depends(get_current_user)):
-    if current_user['role'] == 'viewer':
+@api_router.delete("/shipments/{shipment_id}")
+async def delete_shipment(shipment_id: str, current_user = Depends(get_current_user)):
+    if current_user['role'] not in ['admin', 'user']:
         raise HTTPException(status_code=403, detail="Permission denied")
     
-    result = await db.shipments.update_one({"id": shipment_id}, {"$set": {"status": status}})
-    if result.modified_count == 0:
+    result = await db.shipments.delete_one({"id": shipment_id})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Shipment not found")
     
-    return {"message": "Status updated successfully"}
+    return {"message": "Shipment deleted successfully"}
 
 # Cost Analysis Routes
 @api_router.get("/costs/analysis", response_model=List[CostAnalysis])
