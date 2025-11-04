@@ -200,22 +200,31 @@ class Shipment(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     shipment_number: str
-    product_id: str
-    product_name: str
-    quantity: float
-    customer_name: str
-    destination: str
-    status: ShipmentStatus
     shipment_date: datetime
+    customer_company: str  # Alıcı Firma
+    thickness_mm: float  # Kalınlık
+    width_cm: float  # En
+    length_m: float  # Metre
+    color_name: Optional[str] = None  # Renk
+    quantity: int  # Adet
+    square_meters: float  # Metrekare (otomatik)
+    invoice_number: str  # İrsaliye Numarası
+    vehicle_plate: str  # Araç Plakası
+    driver_name: str  # Şoför Bilgisi
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ShipmentCreate(BaseModel):
-    product_id: str
-    quantity: float
-    customer_name: str
-    destination: str
     shipment_date: datetime
+    customer_company: str
+    thickness_mm: float
+    width_cm: float
+    length_m: float
+    color_material_id: Optional[str] = None
+    quantity: int
+    invoice_number: str
+    vehicle_plate: str
+    driver_name: str
 
 class CostAnalysis(BaseModel):
     material_id: str
