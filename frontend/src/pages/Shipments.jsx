@@ -111,9 +111,10 @@ export default function Shipments({ user }) {
                 Yeni Sevkiyat
               </Button>
             </DialogTrigger>
-            <DialogContent data-testid="add-shipment-dialog">
+            <DialogContent data-testid="add-shipment-dialog" aria-describedby="shipment-dialog-description">
               <DialogHeader>
                 <DialogTitle>Yeni Sevkiyat Oluştur</DialogTitle>
+                <p id="shipment-dialog-description" className="sr-only">Yeni sevkiyat oluşturmak için formu doldurun</p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
