@@ -46,21 +46,54 @@ export default function Manufacturing({ user }) {
     }
   };
 
+  const handleEdit = (record) => {
+    // Format date for datetime-local input
+    const date = new Date(record.production_date);
+    const formattedDate = date.toISOString().slice(0, 16);
+    
+    setEditingRecord(record);
+    setFormData({
+      production_date: formattedDate,
+      machine: record.machine,
+      thickness_mm: record.thickness_mm.toString(),
+      width_cm: record.width_cm.toString(),
+      length_m: record.length_m.toString(),
+      quantity: record.quantity.toString(),
+      masura_type: record.masura_type,
+      masura_quantity: record.masura_quantity.toString(),
+      gas_consumption_kg: record.gas_consumption_kg.toString()
+    });
+    setDialogOpen(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/manufacturing`, {
-        ...formData,
+      const payload = {
         production_date: new Date(formData.production_date).toISOString(),
         thickness_mm: parseFloat(formData.thickness_mm),
         width_cm: parseFloat(formData.width_cm),
         length_m: parseFloat(formData.length_m),
         quantity: parseInt(formData.quantity),
         masura_quantity: parseInt(formData.masura_quantity),
-        gas_consumption_kg: parseFloat(formData.gas_consumption_kg)
-      });
-      toast.success('Üretim kaydı eklendi');
+        gas_consumption_kg: parseFloat(formData.gas_consumption_kg),
+        machine: formData.machine,
+        masura_type: formData.masura_type
+      };
+
+      if (editingRecord) {
+        // Update existing record
+        await axios.delete(`${API}/manufacturing/${editingRecord.id}`);
+        await axios.post(`${API}/manufacturing`, payload);
+        toast.success('Üretim kaydı güncellendi');
+      } else {
+        // Create new record
+        await axios.post(`${API}/manufacturing`, payload);
+        toast.success('Üretim kaydı eklendi');
+      }
+      
       setDialogOpen(false);
+      setEditingRecord(null);
       setFormData({
         production_date: '',
         machine: 'Makine 1',
