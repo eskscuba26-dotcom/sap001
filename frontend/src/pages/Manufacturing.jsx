@@ -312,7 +312,9 @@ export default function Manufacturing({ user }) {
                   <p className="text-sm font-medium text-blue-900">Model: {formData.thickness_mm && formData.width_cm && formData.length_m ? `${formData.thickness_mm} mm x ${formData.width_cm} cm x ${formData.length_m} m` : 'Değerler girilince otomatik oluşacak'}</p>
                 </div>
 
-                <Button type="submit" className="w-full" data-testid="submit-manufacturing-btn">Kaydet</Button>
+                <Button type="submit" className="w-full" data-testid="submit-manufacturing-btn">
+                  {editingRecord ? 'Güncelle' : 'Kaydet'}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
