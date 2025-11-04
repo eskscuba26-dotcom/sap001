@@ -111,9 +111,10 @@ export default function Production({ user }) {
                 Yeni Üretim Emri
               </Button>
             </DialogTrigger>
-            <DialogContent data-testid="add-production-dialog">
+            <DialogContent data-testid="add-production-dialog" aria-describedby="production-dialog-description">
               <DialogHeader>
                 <DialogTitle>Yeni Üretim Emri</DialogTitle>
+                <p id="production-dialog-description" className="sr-only">Yeni üretim emri oluşturmak için formu doldurun</p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
