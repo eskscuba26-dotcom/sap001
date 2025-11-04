@@ -702,6 +702,57 @@ async def get_manufacturing_records(current_user = Depends(get_current_user)):
             record['created_at'] = datetime.fromisoformat(record['created_at'])
     return records
 
+@api_router.put("/manufacturing/{record_id}", response_model=ManufacturingRecord)
+async def update_manufacturing_record(record_id: str, record_data: ManufacturingRecordCreate, current_user = Depends(get_current_user)):
+    if current_user['role'] == 'viewer':
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Check if record exists
+    existing = await db.manufacturing_records.find_one({"id": record_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    # Calculate square meters
+    square_meters = (record_data.width_cm / 100) * record_data.length_m * record_data.quantity
+    
+    # Generate model description
+    model = f"{record_data.thickness_mm} mm x {int(record_data.width_cm)} cm x {int(record_data.length_m)} m"
+    
+    # Get color name if color selected
+    color_name = None
+    if record_data.color_material_id:
+        color_material = await db.raw_materials.find_one({"id": record_data.color_material_id})
+        if color_material:
+            color_name = color_material['name']
+    
+    # Update record
+    update_data = {
+        "production_date": record_data.production_date.isoformat(),
+        "machine": record_data.machine,
+        "thickness_mm": record_data.thickness_mm,
+        "width_cm": record_data.width_cm,
+        "length_m": record_data.length_m,
+        "quantity": record_data.quantity,
+        "square_meters": square_meters,
+        "masura_type": record_data.masura_type,
+        "masura_quantity": record_data.masura_quantity,
+        "color_material_id": record_data.color_material_id,
+        "color_name": color_name,
+        "model": model,
+        "gas_consumption_kg": record_data.gas_consumption_kg
+    }
+    
+    await db.manufacturing_records.update_one({"id": record_id}, {"$set": update_data})
+    
+    # Get updated record
+    updated = await db.manufacturing_records.find_one({"id": record_id}, {"_id": 0})
+    if isinstance(updated['production_date'], str):
+        updated['production_date'] = datetime.fromisoformat(updated['production_date'])
+    if isinstance(updated['created_at'], str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    
+    return ManufacturingRecord(**updated)
+
 @api_router.delete("/manufacturing/{record_id}")
 async def delete_manufacturing_record(record_id: str, current_user = Depends(get_current_user)):
     if current_user['role'] not in ['admin', 'user']:
