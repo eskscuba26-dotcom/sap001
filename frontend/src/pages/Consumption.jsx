@@ -100,9 +100,10 @@ export default function Consumption({ user }) {
                 Tüketim Kaydı
               </Button>
             </DialogTrigger>
-            <DialogContent data-testid="add-consumption-dialog">
+            <DialogContent data-testid="add-consumption-dialog" aria-describedby="consumption-dialog-description">
               <DialogHeader>
                 <DialogTitle>Yeni Tüketim Kaydı</DialogTitle>
+                <p id="consumption-dialog-description" className="sr-only">Hammadde tüketimi kaydetmek için formu doldurun</p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
