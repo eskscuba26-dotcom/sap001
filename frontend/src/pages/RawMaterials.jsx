@@ -250,11 +250,12 @@ export default function RawMaterials({ user }) {
 
       {/* Stock Transaction Dialog */}
       <Dialog open={stockDialogOpen} onOpenChange={setStockDialogOpen}>
-        <DialogContent data-testid="stock-transaction-dialog">
+        <DialogContent data-testid="stock-transaction-dialog" aria-describedby="stock-dialog-description">
           <DialogHeader>
             <DialogTitle>
               {selectedMaterial?.name} - Stok {stockData.transaction_type === 'in' ? 'Girişi' : 'Çıkışı'}
             </DialogTitle>
+            <p id="stock-dialog-description" className="sr-only">Stok hareketi kaydetmek için bilgileri girin</p>
           </DialogHeader>
           <form onSubmit={handleStockTransaction} className="space-y-4">
             <div className="space-y-2">
