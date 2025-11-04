@@ -121,6 +121,45 @@ class ProductCreate(BaseModel):
     code: str
     unit: str
 
+class MachineType(str, Enum):
+    MACHINE_1 = "Makine 1"
+    MACHINE_2 = "Makine 2"
+
+class MasuraType(str, Enum):
+    MASURA_100 = "Masura 100"
+    MASURA_120 = "Masura 120"
+    MASURA_150 = "Masura 150"
+    MASURA_200 = "Masura 200"
+    NO_MASURA = "Masura Yok"
+
+class ManufacturingRecord(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    production_date: datetime
+    machine: MachineType
+    thickness_mm: float  # Kalınlık (mm)
+    width_cm: float  # En (cm)
+    length_m: float  # Metre
+    quantity: int  # Adet
+    square_meters: float  # Metrekare (otomatik hesaplanacak)
+    masura_type: MasuraType
+    masura_quantity: int  # Masura Adedi
+    model: str  # Model açıklaması
+    gas_consumption_kg: float  # Gaz Payı (kg)
+    created_by: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ManufacturingRecordCreate(BaseModel):
+    production_date: datetime
+    machine: MachineType
+    thickness_mm: float
+    width_cm: float
+    length_m: float
+    quantity: int
+    masura_type: MasuraType
+    masura_quantity: int
+    gas_consumption_kg: float
+
 class ProductionOrder(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
