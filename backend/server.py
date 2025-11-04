@@ -565,6 +565,44 @@ async def get_shipments(current_user = Depends(get_current_user)):
             ship['shipment_date'] = datetime.fromisoformat(ship['shipment_date'])
     return shipments
 
+
+@api_router.put("/shipments/{shipment_id}", response_model=Shipment)
+async def update_shipment(shipment_id: str, shipment_data: ShipmentCreate, current_user = Depends(get_current_user)):
+    if current_user['role'] not in ['admin', 'user']:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Mevcut sevkiyatı kontrol et
+    existing_shipment = await db.shipments.find_one({"id": shipment_id})
+    if not existing_shipment:
+        raise HTTPException(status_code=404, detail="Shipment not found")
+    
+    # Güncellenmiş sevkiyat objesi oluştur
+    updated_shipment = Shipment(
+        id=shipment_id,
+        **shipment_data.model_dump(),
+        square_meters=(shipment_data.width_cm / 100) * shipment_data.length_m * shipment_data.quantity,
+        created_at=datetime.fromisoformat(existing_shipment['created_at']) if isinstance(existing_shipment['created_at'], str) else existing_shipment['created_at'],
+        created_by=existing_shipment['created_by']
+    )
+    
+    # Renk adını ekle
+    if shipment_data.color_material_id:
+        color_material = await db.raw_materials.find_one({"id": shipment_data.color_material_id})
+        if color_material:
+            updated_shipment.color_name = color_material['name']
+    
+    # Veritabanını güncelle
+    doc = updated_shipment.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['shipment_date'] = doc['shipment_date'].isoformat()
+    
+    await db.shipments.update_one(
+        {"id": shipment_id},
+        {"$set": doc}
+    )
+    
+    return updated_shipment
+
 @api_router.delete("/shipments/{shipment_id}")
 async def delete_shipment(shipment_id: str, current_user = Depends(get_current_user)):
     if current_user['role'] not in ['admin', 'user']:
