@@ -11,6 +11,7 @@ import RawMaterials from "@/pages/RawMaterials";
 import Products from "@/pages/Products";
 import Production from "@/pages/Production";
 import Manufacturing from "@/pages/Manufacturing";
+import Stock from "@/pages/Stock";
 import Shipments from "@/pages/Shipments";
 import Consumption from "@/pages/Consumption";
 import CostAnalysis from "@/pages/CostAnalysis";
