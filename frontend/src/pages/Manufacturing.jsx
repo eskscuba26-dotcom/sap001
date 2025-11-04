@@ -14,6 +14,7 @@ import { tr } from 'date-fns/locale';
 
 export default function Manufacturing({ user }) {
   const [records, setRecords] = useState([]);
+  const [colors, setColors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -26,6 +27,7 @@ export default function Manufacturing({ user }) {
     quantity: '',
     masura_type: 'Masura 100',
     masura_quantity: '',
+    color_material_id: '',
     gas_consumption_kg: ''
   });
 
