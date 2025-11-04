@@ -44,17 +44,22 @@ export default function Consumption({ user }) {
   // Otomatik hesaplamalar
   const calculateEstol = () => {
     const petkim = parseFloat(formData.petkim_quantity) || 0;
-    return (petkim * 0.03).toFixed(2);
+    const fire = parseFloat(formData.fire_quantity) || 0;
+    // Petkim + Fire'dan toplam Estol (%3)
+    return ((petkim + fire) * 0.03).toFixed(2);
   };
 
   const calculateTalk = () => {
     const petkim = parseFloat(formData.petkim_quantity) || 0;
-    return (petkim * 0.015).toFixed(2);
+    const fire = parseFloat(formData.fire_quantity) || 0;
+    // Petkim + Fire'dan toplam Talk (%1.5)
+    return ((petkim + fire) * 0.015).toFixed(2);
   };
 
   const calculateTotalPetkim = () => {
     const petkim = parseFloat(formData.petkim_quantity) || 0;
     const fire = parseFloat(formData.fire_quantity) || 0;
+    // Toplam Petkim = Petkim + Fire
     return (petkim + fire).toFixed(2);
   };
 
