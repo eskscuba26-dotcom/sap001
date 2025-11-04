@@ -35,6 +35,7 @@ export default function Manufacturing({ user }) {
 
   useEffect(() => {
     fetchRecords();
+    fetchColors();
   }, []);
 
   const fetchRecords = async () => {
@@ -45,6 +46,17 @@ export default function Manufacturing({ user }) {
       toast.error('Üretim kayıtları yüklenemedi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchColors = async () => {
+    try {
+      const response = await axios.get(`${API}/raw-materials`);
+      // Filter materials that contain "Renk" in their name
+      const colorMaterials = response.data.filter(m => m.name.toLowerCase().includes('renk'));
+      setColors(colorMaterials);
+    } catch (error) {
+      console.error('Renkler yüklenemedi:', error);
     }
   };
 
