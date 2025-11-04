@@ -371,15 +371,26 @@ export default function Shipments({ user }) {
                     <td className="p-2 text-xs">{shipment.driver_name}</td>
                     {canEdit && (
                       <td className="p-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(shipment.id)}
-                          data-testid={`delete-shipment-${index}`}
-                          title="Sil"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(shipment)}
+                            data-testid={`edit-shipment-${index}`}
+                            title="Düzenle"
+                          >
+                            <Edit className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(shipment.id)}
+                            data-testid={`delete-shipment-${index}`}
+                            title="Sil"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
                       </td>
                     )}
                   </tr>
