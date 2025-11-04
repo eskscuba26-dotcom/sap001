@@ -84,9 +84,6 @@ export default function Manufacturing({ user }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Önce dialog'u kapat
-    setDialogOpen(false);
-    
     try {
       const payload = {
         production_date: new Date(formData.production_date).toISOString(),
@@ -111,7 +108,9 @@ export default function Manufacturing({ user }) {
         toast.success('Üretim kaydı eklendi');
       }
       
+      // Tüm state'i temizle
       setEditingRecord(null);
+      setDialogOpen(false);
       setFormData({
         production_date: '',
         machine: 'Makine 1',
@@ -125,10 +124,14 @@ export default function Manufacturing({ user }) {
         gas_consumption_kg: ''
       });
       
-      // Kayıtları yeniden yükle
-      await fetchRecords();
+      // Biraz bekle sonra kayıtları yükle
+      setTimeout(() => {
+        fetchRecords();
+      }, 300);
+      
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Hata oluştu');
+      setDialogOpen(false);
     }
   };
 
